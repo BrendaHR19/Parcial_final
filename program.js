@@ -188,21 +188,53 @@ fetch('localidades.geojson') // Asegúrate de que la ruta es correcta
 
 //SECCION 5
 
-// Función para mostrar los paraderos en el mapa
-function mostrarParaderosEnMapa(paraderosGeoJSON) {
-    var mapParaderos = L.map('map-paraderos').setView([4.5709, -74.2973], 14);
+var mapBarrioEstaciones = L.map('map-barrio-estaciones').setView([4.5709, -74.2973], 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapParaderos);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+}).addTo(mapBarrioEstaciones);
 
-    L.geoJSON(paraderosGeoJSON, {
-        pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: L.icon({
-                iconUrl: 'bus-stop-icon.png',
-                iconSize: [25, 25]
-            }) });
-        }
-    }).addTo(mapParaderos);
+var barrioLayer;
+var estacionesLayer;
+
+// Cargar el polígono del barrio
+fetch('ingles.geojson')  // Asegúrate de tener el archivo en la misma carpeta
+    .then(response => response.json())
+    .then(data => {
+        var barrioLayer = L.geoJSON(data, {
+            style: {
+                color: 'blue',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.4
+            }
+        }).addTo(map);
+
+        map.fitBounds(barrioLayer.getBounds()); // Ajusta el zoom al polígono
+    })
+    .catch(error => console.error('Error cargando el GeoJSON:', error));
+
+// Función para cargar y filtrar las estaciones dentro del barrio
+function cargarEstaciones(barrioGeoJSON) {
+    fetch('Paraderos_Zonales_del_SITP.geojson')
+        .then(response => response.json())
+        .then(estacionesData => {
+            let estacionesFiltradas = {
+                "type": "FeatureCollection",
+                "features": estacionesData.features.filter(estacion => 
+                    turf.booleanPointInPolygon(estacion, barrioGeoJSON.features[0])
+                )
+            };
+
+            estacionesLayer = L.geoJSON(estacionesFiltradas, {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, { icon: L.icon({
+                        iconUrl: 'station-icon.png',
+                        iconSize: [30, 30]
+                    }) });
+                }
+            }).addTo(mapBarrioEstaciones);
+        })
+        .catch(error => console.error('Error cargando las estaciones:', error));
 }

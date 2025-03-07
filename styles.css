@@ -84,3 +84,25 @@ body, html {
     width: 150px;
     font-size: 15px;
 }
+
+.barrio-estaciones {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.barrio-estaciones h2 {
+    margin-bottom: 10px;
+    font-size: 24px;
+    text-align: center;
+}
+
+#map-barrio-estaciones {
+    width: 100%;
+    height: 90vh;
+    border: 2px solid #333;
+    border-radius: 8px;
+}
