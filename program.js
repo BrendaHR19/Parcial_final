@@ -62,3 +62,68 @@ map.on('pm:create', function(e) {
     e.layer.pm.enable();
     console.log('Geometría creada:', e.layer.toGeoJSON());
 });
+
+// SECCIÓN 3
+
+var mapLocalidad = L.map('map-localidad', {
+    center: [4.5709, -74.2973], // Ajusta según tu ciudad
+    zoom: 12
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+}).addTo(mapLocalidad);
+
+var localidadLayer; // Variable para almacenar la capa de la localidad
+
+// Función para cargar una localidad específica por su nombre
+function cargarLocalidad(nombreLocalidad) {
+    fetch('localidades.json') // Asegúrate de que el archivo está en la misma carpeta
+        .then(response => response.json())
+        .then(data => {
+            // Buscar la localidad en el JSON
+            const localidad = data.localidades.find(l => l.nombre === nombreLocalidad);
+
+            if (!localidad) {
+                alert('Localidad no encontrada');
+                return;
+            }
+
+            // Convertir coordenadas en formato Leaflet
+            const polygonCoords = localidad.coordenadas.map(coords => coords.map(c => [c[1], c[0]]));
+
+            // Eliminar capa anterior si existe
+            if (localidadLayer) {
+                mapLocalidad.removeLayer(localidadLayer);
+            }
+
+            // Dibujar el polígono de la localidad
+            localidadLayer = L.polygon(polygonCoords, {
+                color: 'green',
+                weight: 2,
+                fillOpacity: 0.4
+            }).addTo(mapLocalidad);
+
+            // Ajustar el mapa al polígono
+            mapLocalidad.fitBounds(localidadLayer.getBounds());
+        })
+        .catch(error => console.error('Error cargando el JSON:', error));
+}
+
+// Evento para cargar la localidad cuando se hace clic en el botón
+document.getElementById('centrarLocalidad').addEventListener('click', function() {
+    const nombreLocalidad = prompt("Ingrese el nombre de la localidad:");
+    if (nombreLocalidad) {
+        cargarLocalidad(nombreLocalidad);
+    }
+});
+
+document.getElementById('limpiarMapa').addEventListener('click', function() {
+    if (localidadLayer) {
+        mapLocalidad.removeLayer(localidadLayer);
+        localidadLayer = null;
+    }
+});
+
+

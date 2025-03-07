@@ -35,6 +35,8 @@ body, html {
     margin: 0;
 }
 
+/*Mapa*/
+    
 .mapa {
     width: 100%;
     height: 100vh; /* Ocupa toda la altura de la pantalla */
