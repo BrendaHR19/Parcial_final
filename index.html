@@ -1,17 +1,29 @@
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Barrio</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css" />
 </head>
 <body>
     <section class="barrio">
         <div class="texto-superpuesto">
-            <h1 id="nombre-barrio">Barrio Ingles</h1>
+            <h1 id="nombre-barrio">Barrio Inglés</h1>
             <h2 id="nombre-localidad">Localidad Rafael Uribe Uribe</h2>
         </div>
     </section>
+    
+    <section class="mapa">
+        <h2>Mapa del Barrio</h2>
+        <div id="map"></div>
+    </section>
+    
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side/leaflet-side-by-side.min.js"></script>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.min.js"></script>
     <script src="program.js"></script>
 </body>
 </html>
