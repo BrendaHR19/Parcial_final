@@ -24,16 +24,33 @@
         <h2>Mapa de la Localidad</h2>
         <div id="map-localidad"></div>
         <div class="botones">
-            <button id="centrarLocalidad">Centrar Localidad</button>
-            <button id="mostrarPuntos">Mostrar Puntos</button>
-            <button id="limpiarMapa">Limpiar Mapa</button>
+            <button class = "buttons" id="NVDI">NVDI</button>
+            <button class = "buttons" id="SAVI">SAVI</button>
+            <button class = "buttons" id="Rutas_Transmi">Rutas Transmilenio</button>
         </div>
+    </section>
+
+    <section class="datos-barrio">
+        <h2>Datos del Barrio</h2>
+        <ul>
+            <li><strong>Área:</strong> <span id="area">Cargando...</span></li>
+            <li><strong>Perímetro:</strong> <span id="perimetro">Cargando...</span></li>
+            <li><strong>Centroide:</strong> <span id="centroide">Cargando...</span></li>
+            <li><strong>Bounding Box:</strong> <span id="bbox">Cargando...</span></li>
+            <li><strong>Vértices:</strong> <span id="vertices">Cargando...</span></li>
+        </ul>
+    </section>
+
+    <section class="paraderos">
+        <h2>Paraderos del SITP en el Barrio</h2>
+        <div id="map-paraderos" style="height: 500px;"></div>
     </section>
     
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side/leaflet-side-by-side.min.js"></script>
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
     <script src="program.js"></script>
 </body>
 </html>

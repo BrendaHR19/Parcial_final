@@ -66,7 +66,7 @@ map.on('pm:create', function(e) {
 // SECCIÓN 3
 
 var mapLocalidad = L.map('map-localidad', {
-    center: [4.5709, -74.2973], // Ajusta según tu ciudad
+    center: [4.5709, -74.2973], // Ajusta a tu ubicación
     zoom: 12
 });
 
@@ -75,55 +75,134 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(mapLocalidad);
 
-var localidadLayer; // Variable para almacenar la capa de la localidad
+var localidadLayer; // Variable para almacenar el polígono de la localidad
 
 // Función para cargar una localidad específica por su nombre
 function cargarLocalidad(nombreLocalidad) {
-    fetch('localidades.json') // Asegúrate de que el archivo está en la misma carpeta
+    fetch('localidades.geojson') // Asegúrate de que el archivo está en la misma carpeta
         .then(response => response.json())
         .then(data => {
-            // Buscar la localidad en el JSON
-            const localidad = data.localidades.find(l => l.nombre === nombreLocalidad);
+            // Filtrar solo la localidad seleccionada
+            const localidadFiltrada = {
+                "type": "FeatureCollection",
+                "features": data.features.filter(feature => feature.properties.LocNombre === nombreLocalidad)
+            };
 
-            if (!localidad) {
+            if (localidadFiltrada.features.length === 0) {
                 alert('Localidad no encontrada');
                 return;
             }
-
-            // Convertir coordenadas en formato Leaflet
-            const polygonCoords = localidad.coordenadas.map(coords => coords.map(c => [c[1], c[0]]));
-
             // Eliminar capa anterior si existe
             if (localidadLayer) {
                 mapLocalidad.removeLayer(localidadLayer);
             }
 
-            // Dibujar el polígono de la localidad
-            localidadLayer = L.polygon(polygonCoords, {
-                color: 'green',
-                weight: 2,
-                fillOpacity: 0.4
+            // Dibujar el polígono de la localidad en el mapa
+            localidadLayer = L.geoJSON(localidadFiltrada, {
+                style: {
+                    color: 'blue',
+                    weight: 2,
+                    fillOpacity: 0.4
+                }
             }).addTo(mapLocalidad);
 
             // Ajustar el mapa al polígono
             mapLocalidad.fitBounds(localidadLayer.getBounds());
         })
-        .catch(error => console.error('Error cargando el JSON:', error));
+        .catch(error => console.error('Error cargando el GeoJSON:', error));
 }
 
-// Evento para cargar la localidad cuando se hace clic en el botón
-document.getElementById('centrarLocalidad').addEventListener('click', function() {
-    const nombreLocalidad = prompt("Ingrese el nombre de la localidad:");
-    if (nombreLocalidad) {
-        cargarLocalidad(nombreLocalidad);
-    }
+// Cargar por defecto "RAFAEL URIBE URIBE" al cargar la página
+cargarLocalidad("RAFAEL URIBE URIBE");
+
+//BOTONES
+
+// Capa NDVI (Imagen ráster desde un servidor WMS)
+var ndviLayer = L.tileLayer.wms("URL_DEL_SERVIDOR_WMS", {
+    layers: "NDVI",
+    format: "image/png",
+    transparent: true
 });
 
-document.getElementById('limpiarMapa').addEventListener('click', function() {
-    if (localidadLayer) {
-        mapLocalidad.removeLayer(localidadLayer);
-        localidadLayer = null;
-    }
+// Capa SAVI
+var saviLayer = L.tileLayer.wms("URL_DEL_SERVIDOR_WMS", {
+    layers: "SAVI",
+    format: "image/png",
+    transparent: true
+});
+
+// Evento para mostrar NDVI
+document.getElementById("NVDI").addEventListener("click", function () {
+    mapLocalidad.addLayer(ndviLayer);
+    mapLocalidad.removeLayer(saviLayer);
+});
+
+// Evento para mostrar SAVI
+document.getElementById("SAVI").addEventListener("click", function () {
+    mapLocalidad.addLayer(saviLayer);
+    mapLocalidad.removeLayer(ndviLayer);
+});
+
+// Evento para restaurar el mapa y quitar capas de NDVI y SAVI
+document.getElementById("Rutas_Transmi").addEventListener("click", function () {
+    mapLocalidad.removeLayer(ndviLayer);
+    mapLocalidad.removeLayer(saviLayer);
 });
 
 
+//SECCION 4
+
+// Función para calcular y mostrar los datos del polígono del barrio
+function calcularDatosPoligono(barrioGeoJSON) {
+    if (!barrioGeoJSON || barrioGeoJSON.features.length === 0) {
+        console.error("No se encontró el polígono del barrio.");
+        return;
+    }
+    
+    let barrio = barrioGeoJSON.features[0]; // Tomamos el primer polígono encontrado
+    let area = turf.area(barrio); // Área en metros cuadrados
+    let perimetro = turf.length(barrio, {units: 'kilometers'}); // Perímetro en km
+    let centroide = turf.centroid(barrio).geometry.coordinates; // Centroide
+    let bbox = turf.bbox(barrio); // Bounding box [minX, minY, maxX, maxY]
+    let vertices = turf.coordAll(barrio); // Lista de vértices
+    
+    // Mostrar datos en la sección HTML
+    document.getElementById("area").textContent = (area / 1e6).toFixed(2) + " km²";
+    document.getElementById("perimetro").textContent = perimetro.toFixed(2) + " km";
+    document.getElementById("centroide").textContent = `Lat: ${centroide[1].toFixed(5)}, Lng: ${centroide[0].toFixed(5)}`;
+    document.getElementById("bbox").textContent = `[${bbox.map(coord => coord.toFixed(5)).join(", ")}]`;
+    document.getElementById("vertices").textContent = vertices.length;
+}
+
+// Cargar el GeoJSON del barrio y calcular los datos
+fetch('localidades.geojson') // Asegúrate de que la ruta es correcta
+    .then(response => response.json())
+    .then(data => {
+        let barrioFiltrado = {
+            "type": "FeatureCollection",
+            "features": data.features.filter(f => f.properties.LocNombre === "RAFAEL URIBE URIBE")
+        };
+        calcularDatosPoligono(barrioFiltrado);
+    })
+    .catch(error => console.error('Error cargando el GeoJSON:', error));
+
+//SECCION 5
+
+// Función para mostrar los paraderos en el mapa
+function mostrarParaderosEnMapa(paraderosGeoJSON) {
+    var mapParaderos = L.map('map-paraderos').setView([4.5709, -74.2973], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(mapParaderos);
+
+    L.geoJSON(paraderosGeoJSON, {
+        pointToLayer: function (feature, latlng) {
+            return L.marker(latlng, { icon: L.icon({
+                iconUrl: 'bus-stop-icon.png',
+                iconSize: [25, 25]
+            }) });
+        }
+    }).addTo(mapParaderos);
+}
